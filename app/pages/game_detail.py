@@ -51,11 +51,20 @@ def game_detail_page():
                             rx.el.h3(
                                 "Game Details", class_name="text-xl font-bold mb-4"
                             ),
-                            rx.el.button(
-                                rx.icon("share-2", class_name="w-4 h-4 mr-2"),
-                                "Share Game",
-                                on_click=GameState.share_game_link,
-                                class_name="flex items-center px-3 py-1.5 text-sm rounded-md bg-gray-700 hover:bg-gray-600 font-semibold transition-colors",
+                            rx.el.div(
+                                rx.el.button(
+                                    rx.icon("share-2", class_name="w-4 h-4 mr-2"),
+                                    "Share Game",
+                                    on_click=GameState.share_game_link,
+                                    class_name="flex items-center px-3 py-1.5 text-sm rounded-md bg-gray-700 hover:bg-gray-600 font-semibold transition-colors",
+                                ),
+                                rx.el.button(
+                                    rx.icon("map-pin", class_name="w-4 h-4 mr-2"),
+                                    "View on Map",
+                                    on_click=GameState.redirect_to_google_maps,
+                                    class_name="flex items-center px-3 py-1.5 text-sm rounded-md bg-blue-600 hover:bg-blue-700 font-semibold transition-colors",
+                                ),
+                                class_name="flex gap-2",
                             ),
                             rx.el.div(
                                 rx.cond(

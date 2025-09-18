@@ -1,6 +1,7 @@
 import reflex as rx
 from typing import TypedDict, Optional
 import datetime
+from reflex_enterprise.components.map.types import latlng, LatLng
 
 
 class ChatMessage(TypedDict):
@@ -14,7 +15,7 @@ class Game(TypedDict):
     title: str
     datetime: str
     capacity: int
-    location: tuple[float, float]
+    location: LatLng
     creator: str
     attendees: list[str]
     waitlist: list[str]
@@ -28,7 +29,7 @@ class GameState(rx.State):
             "title": "Morning Hoops",
             "datetime": "2024-07-26T08:00",
             "capacity": 10,
-            "location": (34.0522, -118.2437),
+            "location": latlng(lat=34.0522, lng=-118.2437),
             "creator": "admin@reflex.com",
             "attendees": ["admin@reflex.com"],
             "waitlist": [],
@@ -39,7 +40,7 @@ class GameState(rx.State):
             "title": "Evening Game",
             "datetime": "2024-07-26T18:00",
             "capacity": 12,
-            "location": (34.055, -118.25),
+            "location": latlng(lat=34.055, lng=-118.25),
             "creator": "user2@example.com",
             "attendees": [],
             "waitlist": [],
@@ -70,7 +71,7 @@ class GameState(rx.State):
             title=form_data["title"],
             datetime=form_data["datetime"],
             capacity=int(form_data["capacity"]),
-            location=(34.0522, -118.2437),
+            location=latlng(lat=34.0522, lng=-118.2437),
             creator=auth_state.current_user,
             attendees=[auth_state.current_user],
             waitlist=[],
@@ -121,6 +122,14 @@ class GameState(rx.State):
         url = f"{self.router.page.origin}{self.router.page.full_raw_path}"
         yield rx.set_clipboard(url)
         yield rx.toast.success("Game link copied to clipboard!")
+
+    @rx.event
+    def redirect_to_google_maps(self):
+        if self.current_game:
+            lat = self.current_game["location"]["lat"]
+            lng = self.current_game["location"]["lng"]
+            url = f"https://www.google.com/maps/search/?api=1&query={lat},{lng}"
+            return rx.redirect(url, external=True)
 
     @rx.var
     async def past_games(self) -> list[Game]:
