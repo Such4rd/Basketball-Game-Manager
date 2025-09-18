@@ -5,7 +5,10 @@ from app.pages.dashboard import dashboard
 from app.pages.index import index
 from app.pages.stats import stats_page
 from app.pages.games import games_page
+from app.pages.game_detail import game_detail_page
+from app.pages.history import history_page
 from app.states.auth_state import AuthState
+from app.states.game_state import GameState
 
 app = rx.App(
     theme=rx.theme(appearance="light"),
@@ -24,3 +27,9 @@ app.add_page(sign_up, route="/sign-up")
 app.add_page(dashboard, route="/dashboard", on_load=[AuthState.check_session])
 app.add_page(stats_page, route="/stats", on_load=[AuthState.check_session])
 app.add_page(games_page, route="/games", on_load=[AuthState.check_session])
+app.add_page(
+    game_detail_page,
+    route="/games/[game_id]",
+    on_load=[AuthState.check_session, GameState.load_game],
+)
+app.add_page(history_page, route="/history", on_load=[AuthState.check_session])

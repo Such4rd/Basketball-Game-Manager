@@ -1,5 +1,12 @@
 import reflex as rx
-from typing import TypedDict
+from typing import TypedDict, Optional
+import datetime
+
+
+class ChatMessage(TypedDict):
+    user: str
+    message: str
+    timestamp: str
 
 
 class Game(TypedDict):
@@ -11,6 +18,7 @@ class Game(TypedDict):
     creator: str
     attendees: list[str]
     waitlist: list[str]
+    chat_messages: list[ChatMessage]
 
 
 class GameState(rx.State):
@@ -24,6 +32,7 @@ class GameState(rx.State):
             "creator": "admin@reflex.com",
             "attendees": ["admin@reflex.com"],
             "waitlist": [],
+            "chat_messages": [],
         },
         {
             "id": 2,
@@ -34,9 +43,12 @@ class GameState(rx.State):
             "creator": "user2@example.com",
             "attendees": [],
             "waitlist": [],
+            "chat_messages": [],
         },
     ]
     search_query: str = ""
+    current_game: Optional[Game] = None
+    chat_input: str = ""
 
     @rx.var
     def filtered_games(self) -> list[Game]:
@@ -62,15 +74,66 @@ class GameState(rx.State):
             creator=auth_state.current_user,
             attendees=[auth_state.current_user],
             waitlist=[],
+            chat_messages=[],
         )
         self.games.append(new_game)
         yield rx.toast.success("Game created successfully!")
 
-    def _find_game(self, game_id: int) -> Game | None:
+    def _find_game(self, game_id: int) -> Optional[Game]:
         for game in self.games:
             if game["id"] == game_id:
                 return game
         return None
+
+    @rx.event
+    def load_game(self):
+        game_id = self.router.page.params.get("game_id", "")
+        if game_id.isdigit():
+            game = self._find_game(int(game_id))
+            self.current_game = game
+            if not game:
+                return rx.redirect("/games")
+        else:
+            return rx.redirect("/games")
+
+    @rx.event
+    async def send_message(self, form_data: dict):
+        from app.states.auth_state import AuthState
+
+        message = form_data.get("message", "").strip()
+        if not message or not self.current_game:
+            return
+        auth_state = await self.get_state(AuthState)
+        new_message = ChatMessage(
+            user=auth_state.current_user,
+            message=message,
+            timestamp=datetime.datetime.now().isoformat(),
+        )
+        game_id = self.current_game["id"]
+        for i, game in enumerate(self.games):
+            if game["id"] == game_id:
+                self.games[i]["chat_messages"].append(new_message)
+                self.current_game = self.games[i]
+                break
+
+    @rx.event
+    def share_game_link(self):
+        yield rx.set_clipboard(self.router.page.full_raw_url)
+        yield rx.toast.success("Game link copied to clipboard!")
+
+    @rx.var
+    async def past_games(self) -> list[Game]:
+        from app.states.auth_state import AuthState
+
+        auth_state = await self.get_state(AuthState)
+        user = auth_state.current_user
+        now = datetime.datetime.now()
+        past_games_list = []
+        for game in self.games:
+            game_time = datetime.datetime.fromisoformat(game["datetime"])
+            if game_time < now and user in game["attendees"]:
+                past_games_list.append(game)
+        return past_games_list
 
     @rx.event
     async def join_game(self, game_id: int):

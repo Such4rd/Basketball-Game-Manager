@@ -46,7 +46,18 @@ def dashboard():
                     ),
                     href="/games",
                 ),
-                class_name="grid grid-cols-1 md:grid-cols-2 gap-6",
+                rx.el.a(
+                    rx.el.div(
+                        rx.el.h3("Game History", class_name="text-xl font-bold"),
+                        rx.el.p(
+                            "Review your past games and results.",
+                            class_name="text-gray-400",
+                        ),
+                        class_name="p-6 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-700/50 transition-colors",
+                    ),
+                    href="/history",
+                ),
+                class_name="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6",
             ),
         ),
         class_name="font-['Inter'] bg-gray-900 text-white min-h-screen p-8 pt-24",
