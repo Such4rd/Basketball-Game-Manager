@@ -118,7 +118,8 @@ class GameState(rx.State):
 
     @rx.event
     def share_game_link(self):
-        yield rx.set_clipboard(self.router.page.full_raw_url)
+        url = f"{self.router.page.origin}{self.router.page.full_raw_path}"
+        yield rx.set_clipboard(url)
         yield rx.toast.success("Game link copied to clipboard!")
 
     @rx.var
