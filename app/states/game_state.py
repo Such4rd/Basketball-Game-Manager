@@ -36,6 +36,17 @@ class GameState(rx.State):
             "waitlist": [],
         },
     ]
+    search_query: str = ""
+
+    @rx.var
+    def filtered_games(self) -> list[Game]:
+        if not self.search_query:
+            return self.games
+        return [
+            game
+            for game in self.games
+            if self.search_query.lower() in game["title"].lower()
+        ]
 
     @rx.event
     async def create_game(self, form_data: dict):
